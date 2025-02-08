@@ -90,25 +90,12 @@
       const currentPrice = parseFloat(document.getElementById('btc_price').value);
       const dcaAmount = parseFloat(document.getElementById('dca_amount').value);
       const frequency = document.getElementById('dca_frequency').value;
-      const durationMonths = parseInt(document.getElementById('dca_duration').value);
+      const iterations = parseInt(document.getElementById('dca_duration').value);
       const futurePrice = parseFloat(document.getElementById('future_price').value);
       const futureFeeRate = parseFloat(document.getElementById('future_fee_rate').value);
 
-      // Calculate number of purchases based on frequency
-      let purchasesPerMonth;
-      switch (frequency) {
-        case 'daily':
-          purchasesPerMonth = 30;
-          break;
-        case 'weekly':
-          purchasesPerMonth = 4;
-          break;
-        case 'monthly':
-          purchasesPerMonth = 1;
-          break;
-      }
-
-      const totalPurchases = purchasesPerMonth * durationMonths;
+      // Total purchases is now simply the number of iterations
+      const totalPurchases = iterations;
       const btcPerPurchase = dcaAmount / currentPrice;
       const totalSpent = dcaAmount * totalPurchases;
       const totalBtc = btcPerPurchase * totalPurchases;
@@ -126,12 +113,22 @@
       document.getElementById('total_spent').innerHTML = totalSpent.toLocaleString('en-US', { maximumFractionDigits: 2 });
       document.getElementById('total_btc').innerHTML = totalBtc.toFixed(8);
       document.getElementById('utxo_count').innerHTML = totalPurchases;
-      document.getElementById('spend_cost').innerHTML = `${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })} - ${feePercentage.toFixed(2)}% of future value)`;
 
-      // Add warning if fee percentage is over 50%
-      if (feePercentage > 50) {
-        document.getElementById('spend_cost').innerHTML += `<br><b style="color: red;">WARNING: The fee to spend these UTXOs (${feePercentage.toFixed(2)}%) would consume more than half of your future bitcoin value!</b>`;
-      }
+      // Create callout with conditional styling
+      const calloutStyle = feePercentage > 50 ?
+        'background-color: #ffebee; border-left: 5px solid #c62828; padding: 15px; margin: 10px 0;' :
+        'background-color: #e3f2fd; border-left: 5px solid #1976d2; padding: 15px; margin: 10px 0;';
+
+      const warningText = feePercentage > 50 ?
+        `WARNING: The fee would consume ${feePercentage.toFixed(2)}% of your future bitcoin value!` :
+        `Fee represents ${feePercentage.toFixed(2)}% of your future bitcoin value`;
+
+      document.getElementById('spend_cost').innerHTML = `
+        <div style="${calloutStyle}">
+          <strong>Cost to Spend All UTXOs:</strong><br>
+          ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
+          ${warningText}
+        </div>`;
 
       document.getElementById('dca_results').style.display = 'block';
     }
