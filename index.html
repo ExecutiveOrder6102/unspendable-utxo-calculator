@@ -90,12 +90,25 @@
       const currentPrice = parseFloat(document.getElementById('btc_price').value);
       const dcaAmount = parseFloat(document.getElementById('dca_amount').value);
       const frequency = document.getElementById('dca_frequency').value;
-      const iterations = parseInt(document.getElementById('dca_duration').value);
+      const durationMonths = parseInt(document.getElementById('dca_duration').value);
       const futurePrice = parseFloat(document.getElementById('future_price').value);
       const futureFeeRate = parseFloat(document.getElementById('future_fee_rate').value);
 
-      // Total purchases is now simply the number of iterations
-      const totalPurchases = iterations;
+      // Calculate number of purchases based on frequency
+      let purchasesPerMonth;
+      switch (frequency) {
+        case 'daily':
+          purchasesPerMonth = 30;
+          break;
+        case 'weekly':
+          purchasesPerMonth = 52 / 12;  // 4.333... weeks per month (52 weeks / 12 months)
+          break;
+        case 'monthly':
+          purchasesPerMonth = 1;
+          break;
+      }
+
+      const totalPurchases = purchasesPerMonth * durationMonths;
       const btcPerPurchase = dcaAmount / currentPrice;
       const totalSpent = dcaAmount * totalPurchases;
       const totalBtc = btcPerPurchase * totalPurchases;
@@ -103,7 +116,7 @@
       // Calculate future UTXO spending cost
       const txVBytes = document.getElementById('txVBytes').innerHTML;
       const spendCostSats = txVBytes * futureFeeRate * totalPurchases;
-      const spendCostUSD = (spendCostSats / 100000000) * futurePrice; // Convert sats to BTC then to USD
+      const spendCostUSD = (spendCostSats / 100000000) * futurePrice;
 
       // Calculate fee as percentage of total investment
       const totalValueAtFuturePrice = totalBtc * futurePrice;
@@ -124,13 +137,13 @@
         `Fee represents ${feePercentage.toFixed(2)}% of your future bitcoin value`;
 
       document.getElementById('spend_cost').innerHTML = `
-        <div style="${calloutStyle}">
-          <strong>Cost to Spend All UTXOs:</strong><br>
-          ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
-          <strong>Total Future Bitcoin Value:</strong><br>
-          $${totalValueAtFuturePrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}<br>
-          ${warningText}
-        </div>`;
+    <div style="${calloutStyle}">
+      <strong>Cost to Spend All UTXOs:</strong><br>
+      ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
+      <strong>Total Future Bitcoin Value:</strong><br>
+      $${totalValueAtFuturePrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}<br>
+      ${warningText}
+    </div>`;
 
       document.getElementById('dca_results').style.display = 'block';
     }
@@ -158,7 +171,7 @@
           purchasesPerMonth = 30;
           break;
         case 'weekly':
-          purchasesPerMonth = 4;
+          purchasesPerMonth = 52 / 12;  // 4.333... weeks per month (52 weeks / 12 months)
           break;
         case 'monthly':
           purchasesPerMonth = 1;
