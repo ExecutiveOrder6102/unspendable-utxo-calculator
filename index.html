@@ -115,11 +115,11 @@
       document.getElementById('utxo_count').innerHTML = totalPurchases;
 
       // Create callout with conditional styling
-      const calloutStyle = feePercentage > 50 ?
+      const calloutStyle = feePercentage > 25 ?
         'background-color: #ffebee; border-left: 5px solid #c62828; padding: 15px; margin: 10px 0;' :
         'background-color: #e3f2fd; border-left: 5px solid #1976d2; padding: 15px; margin: 10px 0;';
 
-      const warningText = feePercentage > 50 ?
+      const warningText = feePercentage > 25 ?
         `WARNING: The fee would consume ${feePercentage.toFixed(2)}% of your future bitcoin value!` :
         `Fee represents ${feePercentage.toFixed(2)}% of your future bitcoin value`;
 
@@ -127,6 +127,8 @@
         <div style="${calloutStyle}">
           <strong>Cost to Spend All UTXOs:</strong><br>
           ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
+          <strong>Total Future Bitcoin Value:</strong><br>
+          $${totalValueAtFuturePrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}<br>
           ${warningText}
         </div>`;
 
@@ -429,7 +431,7 @@
                 <p>Total Spent: $<span id="total_spent"></span></p>
                 <p>Total Bitcoin: <span id="total_btc"></span> BTC</p>
                 <p>Number of UTXOs: <span id="utxo_count"></span></p>
-                <p>Cost to Spend All UTXOs: <span id="spend_cost"></span></p>
+                <span id="spend_cost"></span>
               </div>
               <button class="btn btn-primary" onclick="processForm();return false;">Calculate</button><br />
               Size in virtual bytes: <span id="txVBytes"></span><br />
