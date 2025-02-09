@@ -56,6 +56,26 @@
     .alert-danger {
       border-left: 4px solid #dc3545;
     }
+
+    .warning-callout {
+      background-color: #fff3cd;
+      /* Yellow background */
+      border: 1px solid #ffeeba;
+      border-radius: 0.25rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      color: #856404;
+    }
+
+    .danger-callout {
+      background-color: #f8d7da;
+      /* Red background */
+      border: 1px solid #f5c6cb;
+      border-radius: 0.25rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      color: #721c24;
+    }
   </style>
 </head>
 
@@ -170,11 +190,11 @@
         const data = await response.json();
         const price = data.bitcoin.usd;
 
-        // Update the input field with the fetched price
-        document.getElementById('btc_price').value = price;
-
-        // Recalculate results with new price
-        processForm();
+        const btcPriceInput = document.getElementById('btc_price');
+        if (btcPriceInput) {
+          btcPriceInput.value = price;
+          processForm();
+        }
       } catch (error) {
         console.error('Error fetching Bitcoin price:', error);
       }
@@ -223,16 +243,33 @@
           ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
           This would be ${((spendCostUSD / totalSpent) * 100).toFixed(1)}% of your total value
         </div>`;
+
+      // Update warning message
+      const warningDiv = document.getElementById('warning');
+      warningDiv.innerHTML = '';
+
+      // Calculate percentage of total cost relative to total purchased amount
+      const totalPurchased = parseFloat(document.getElementById('dca_amount').value);
+      const costPercentage = (spendCostUSD / totalPurchased) * 100;
+
+      if (costPercentage > 25) {
+        warningDiv.innerHTML = `
+          <div class="danger-callout">
+            <strong>High Cost Warning:</strong> The estimated cost is more than 25% of your total purchased amount!
+          </div>`;
+      } else if (costPercentage > 10) {
+        warningDiv.innerHTML = `
+          <div class="warning-callout">
+            <strong>Warning:</strong> The estimated cost is more than 10% of your total purchased amount!
+          </div>`;
+      }
     }
 
     function processForm() {
       calculateDCAResults();
     }
 
-    // Initial load: fetch price and calculate
-    document.addEventListener('DOMContentLoaded', () => {
-      fetchBitcoinPrice();
-    });
+    document.addEventListener('DOMContentLoaded', fetchBitcoinPrice);
   </script>
 </body>
 
