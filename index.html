@@ -181,10 +181,9 @@
     <script>
       // Move all the JavaScript functions here
       const P2PKH_IN_SIZE = 148; // 36 (outpoint) + 1 (scriptSig length) + 107 (scriptSig) + 4 (nSequence)
-      const P2SH_IN_SIZE = 41; // 36 (outpoint) + 1 (scriptSig length) + 4 (nSequence)
-      const P2SH_P2WPKH_IN_SIZE = 90.75; // 36 (outpoint) + 23 (scriptSig) + 4 (nSequence) + 0.25 (witness count) + 27 (witness) * 1/4
-      const P2WPKH_IN_SIZE = 67.75; // 36 (outpoint) + 1 (empty scriptSig) + 4 (nSequence) + 0.25 (witness count) + 27 (witness) * 1/4
-      const P2TR_IN_SIZE = 57.25; // 36 (outpoint) + 1 (empty scriptSig) + 4 (nSequence) + 0.25 (witness count) + 16.5 (witness)
+      const P2SH_P2WPKH_IN_SIZE = 90.75;
+      const P2WPKH_IN_SIZE = 67.75;
+      const P2TR_IN_SIZE = 57.25;
 
       const PUBKEY_SIZE = 33;
       const SIGNATURE_SIZE = 72;
@@ -224,11 +223,26 @@
           var witness_vbytes = 0.5;  // segwit marker & flag
         }
 
+        const output_size = getOutputSize(input_script);
+
         return 4 + // nVersion
           getSizeOfVarInt(input_count) + // number of inputs
           getSizeOfVarInt(output_count) + // number of outputs
+          (output_size * output_count) + // size of each output
           4 + // nLockTime
           witness_vbytes;
+      }
+
+      function getOutputSize(input_script) {
+        switch (input_script) {
+          case "P2PKH":
+            return P2PKH_OUT_SIZE;
+          case "P2SH":
+            return P2SH_OUT_SIZE; // 32 vBytes for P2SH output
+          // ... other cases ...
+          default:
+            return P2PKH_OUT_SIZE;
+        }
       }
 
       function getTxOverheadExtraRawBytes(input_script, input_count) {
@@ -345,7 +359,8 @@
             inputSize = P2PKH_IN_SIZE;
             break;
           case "P2SH":
-            inputSize = P2SH_IN_SIZE;
+            // Standard P2SH multisig input size
+            inputSize = 41; // 36 (outpoint) + 1 (scriptSig length) + 4 (nSequence)
             break;
           case "P2SH-P2WPKH":
             inputSize = P2SH_P2WPKH_IN_SIZE;
