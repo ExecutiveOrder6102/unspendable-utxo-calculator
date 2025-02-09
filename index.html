@@ -181,6 +181,7 @@
     <script>
       // Move all the JavaScript functions here
       const P2PKH_IN_SIZE = 148; // 36 (outpoint) + 1 (scriptSig length) + 107 (scriptSig) + 4 (nSequence)
+      const P2SH_IN_SIZE = 41; // 36 (outpoint) + 1 (scriptSig length) + 4 (nSequence)
       const P2SH_P2WPKH_IN_SIZE = 90.75; // 36 (outpoint) + 23 (scriptSig) + 4 (nSequence) + 0.25 (witness count) + 27 (witness) * 1/4
       const P2WPKH_IN_SIZE = 67.75; // 36 (outpoint) + 1 (empty scriptSig) + 4 (nSequence) + 0.25 (witness count) + 27 (witness) * 1/4
       const P2TR_IN_SIZE = 57.25; // 36 (outpoint) + 1 (empty scriptSig) + 4 (nSequence) + 0.25 (witness count) + 16.5 (witness)
@@ -343,27 +344,20 @@
           case "P2PKH":
             inputSize = P2PKH_IN_SIZE;
             break;
+          case "P2SH":
+            inputSize = P2SH_IN_SIZE;
+            break;
           case "P2SH-P2WPKH":
             inputSize = P2SH_P2WPKH_IN_SIZE;
-            inputWitnessSize = 107; // size(signature) + signature + size(pubkey) + pubkey
+            inputWitnessSize = 107;
             break;
           case "P2WPKH":
             inputSize = P2WPKH_IN_SIZE;
-            inputWitnessSize = 107; // size(signature) + signature + size(pubkey) + pubkey
+            inputWitnessSize = 107;
             break;
           case "P2TR": // Only consider the cooperative taproot signing path; assume multisig is done via aggregate signatures
             inputSize = P2TR_IN_SIZE;
             inputWitnessSize = 65; // getSizeOfVarInt(schnorrSignature) + schnorrSignature;
-            break;
-          case "P2SH":
-            var redeemScriptSize = 1 + // OP_M
-              input_n * (1 + PUBKEY_SIZE) + // OP_PUSH33 <pubkey>
-              1 + // OP_N
-              1; // OP_CHECKMULTISIG
-            var scriptSigSize = 1 + // size(0)
-              input_m * (1 + SIGNATURE_SIZE) + // size(SIGNATURE_SIZE) + signature
-              getSizeOfScriptLengthElement(redeemScriptSize) + redeemScriptSize;
-            inputSize = 32 + 4 + getSizeOfVarInt(scriptSigSize) + scriptSigSize + 4;
             break;
           case "P2SH-P2WSH":
           case "P2WSH":
