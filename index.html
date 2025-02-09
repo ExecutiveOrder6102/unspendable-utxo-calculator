@@ -177,141 +177,130 @@
       <p>Twitter Bootstrap: <a href="http://getbootstrap.com/">http://getbootstrap.com/</a></p>
     </div>
 
-    <div class="mt-5 text-center text-muted">
-      <p>Transaction size calculations based on <a href="https://bitcoin.stackexchange.com/a/98690">Murch's
-          StackExchange answer</a>.</p>
-      <p>Calculator by <a href="https://twitter.com/moneyball">Moneyball</a>.</p>
-    </div>
-  </div>
+    <!-- Remove Plotly script and config -->
+    <script>
+      // Move all the JavaScript functions here
+      const P2PKH_IN_SIZE = 148;
 
-  <!-- Move all script tags to the end of body, right before </body> -->
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script>
-    window.PlotlyConfig = { MathJaxConfig: 'local' };
-  </script>
-  <script>
-    // Move all the JavaScript functions here
-    const P2PKH_IN_SIZE = 148;
+      // All segwit input sizes are reduced by 1 WU to account for the witness item counts being added for every input per the transaction header
+      const P2SH_P2WPKH_IN_SIZE = 90.75;
 
-    // All segwit input sizes are reduced by 1 WU to account for the witness item counts being added for every input per the transaction header
-    const P2SH_P2WPKH_IN_SIZE = 90.75;
+      const P2WPKH_IN_SIZE = 67.75;
 
-    const P2WPKH_IN_SIZE = 67.75;
+      const P2TR_IN_SIZE = 57.25;
 
-    const P2TR_IN_SIZE = 57.25;
+      const PUBKEY_SIZE = 33;
+      const SIGNATURE_SIZE = 72;
 
-    const PUBKEY_SIZE = 33;
-    const SIGNATURE_SIZE = 72;
-
-    function getSizeOfScriptLengthElement(length) {
-      if (length < 75) {
-        return 1;
-      } else if (length <= 255) {
-        return 2;
-      } else if (length <= 65535) {
-        return 3;
-      } else if (length <= 4294967295) {
-        return 5;
-      } else {
-        alert('Size of redeem script is too large');
-      }
-    }
-
-    function getSizeOfVarInt(length) {
-      if (length < 253) {
-        return 1;
-      } else if (length < 65535) {
-        return 3;
-      } else if (length < 4294967295) {
-        return 5;
-      } else if (length < 18446744073709551615) {
-        return 9;
-      } else {
-        alert("Invalid var int");
-      }
-    }
-
-    function getTxOverheadVBytes(input_script, input_count, output_count) {
-      if (input_script == "P2PKH" || input_script == "P2SH") {
-        var witness_vbytes = 0;
-      } else { // Transactions with segwit inputs have extra overhead
-        var witness_vbytes = 0.25                 // segwit marker
-          + 0.25                  // segwit flag
-          + input_count / 4;      // witness element count per input
+      function getSizeOfScriptLengthElement(length) {
+        if (length < 75) {
+          return 1;
+        } else if (length <= 255) {
+          return 2;
+        } else if (length <= 65535) {
+          return 3;
+        } else if (length <= 4294967295) {
+          return 5;
+        } else {
+          alert('Size of redeem script is too large');
+        }
       }
 
-      return 4 // nVersion
-        + getSizeOfVarInt(input_count) // number of inputs
-        + getSizeOfVarInt(output_count) // number of outputs
-        + 4 // nLockTime
-        + witness_vbytes;
-    }
-
-    function getTxOverheadExtraRawBytes(input_script, input_count) {
-      // Returns the remaining 3/4 bytes per witness bytes
-      if (input_script == "P2PKH" || input_script == "P2SH") {
-        var witness_bytes = 0;
-      } else { // Transactions with segwit inputs have extra overhead
-        var witness_bytes = 0.25             // segwit marker
-          + 0.25              // segwit flag
-          + input_count / 4;  // witness element count per input
+      function getSizeOfVarInt(length) {
+        if (length < 253) {
+          return 1;
+        } else if (length < 65535) {
+          return 3;
+        } else if (length < 4294967295) {
+          return 5;
+        } else if (length < 18446744073709551615) {
+          return 9;
+        } else {
+          alert("Invalid var int");
+        }
       }
 
-      return witness_bytes * 3;
-    }
+      function getTxOverheadVBytes(input_script, input_count, output_count) {
+        if (input_script == "P2PKH" || input_script == "P2SH") {
+          var witness_vbytes = 0;
+        } else { // Transactions with segwit inputs have extra overhead
+          var witness_vbytes = 0.25                 // segwit marker
+            + 0.25                  // segwit flag
+            + input_count / 4;      // witness element count per input
+        }
 
-    function calculateDCAResults() {
-      // Get input values
-      const currentPrice = parseFloat(document.getElementById('btc_price').value);
-      const dcaAmount = parseFloat(document.getElementById('dca_amount').value);
-      const frequency = document.getElementById('dca_frequency').value;
-      const durationMonths = parseInt(document.getElementById('dca_duration').value);
-      const futurePrice = parseFloat(document.getElementById('future_price').value);
-      const futureFeeRate = parseFloat(document.getElementById('future_fee_rate').value);
-
-      // Calculate number of purchases based on frequency
-      let purchasesPerMonth;
-      switch (frequency) {
-        case 'daily':
-          purchasesPerMonth = 30;
-          break;
-        case 'weekly':
-          purchasesPerMonth = 52 / 12; // Approximately 4.33 weeks per month
-          break;
-        case 'monthly':
-          purchasesPerMonth = 1;
-          break;
+        return 4 // nVersion
+          + getSizeOfVarInt(input_count) // number of inputs
+          + getSizeOfVarInt(output_count) // number of outputs
+          + 4 // nLockTime
+          + witness_vbytes;
       }
 
-      const totalPurchases = Math.round(purchasesPerMonth * durationMonths);
-      const btcPerPurchase = dcaAmount / currentPrice;
-      const totalSpent = dcaAmount * totalPurchases;
-      const totalBtc = btcPerPurchase * totalPurchases;
+      function getTxOverheadExtraRawBytes(input_script, input_count) {
+        // Returns the remaining 3/4 bytes per witness bytes
+        if (input_script == "P2PKH" || input_script == "P2SH") {
+          var witness_bytes = 0;
+        } else { // Transactions with segwit inputs have extra overhead
+          var witness_bytes = 0.25             // segwit marker
+            + 0.25              // segwit flag
+            + input_count / 4;  // witness element count per input
+        }
 
-      // Calculate future UTXO spending cost
-      const txVBytes = document.getElementById('txVBytes').innerHTML;
-      const spendCostSats = txVBytes * futureFeeRate * totalPurchases;
-      const spendCostUSD = (spendCostSats / 100000000) * futurePrice;
+        return witness_bytes * 3;
+      }
 
-      // Calculate fee as percentage of total investment
-      const totalValueAtFuturePrice = totalBtc * futurePrice;
-      const feePercentage = (spendCostUSD / totalValueAtFuturePrice) * 100;
+      function calculateDCAResults() {
+        // Get input values
+        const currentPrice = parseFloat(document.getElementById('btc_price').value);
+        const dcaAmount = parseFloat(document.getElementById('dca_amount').value);
+        const frequency = document.getElementById('dca_frequency').value;
+        const durationMonths = parseInt(document.getElementById('dca_duration').value);
+        const futurePrice = parseFloat(document.getElementById('future_price').value);
+        const futureFeeRate = parseFloat(document.getElementById('future_fee_rate').value);
 
-      // Update results
-      document.getElementById('total_spent').innerHTML = totalSpent.toLocaleString('en-US', { maximumFractionDigits: 2 });
-      document.getElementById('total_btc').innerHTML = totalBtc.toFixed(8);
-      document.getElementById('utxo_count').innerHTML = totalPurchases;
+        // Calculate number of purchases based on frequency
+        let purchasesPerMonth;
+        switch (frequency) {
+          case 'daily':
+            purchasesPerMonth = 30;
+            break;
+          case 'weekly':
+            purchasesPerMonth = 52 / 12; // Approximately 4.33 weeks per month
+            break;
+          case 'monthly':
+            purchasesPerMonth = 1;
+            break;
+        }
 
-      // Create callout with conditional styling
-      const calloutStyle = feePercentage > 25 ?
-        'background-color: #ffebee; border-left: 5px solid #c62828; padding: 15px; margin: 10px 0;' :
-        'background-color: #e3f2fd; border-left: 5px solid #1976d2; padding: 15px; margin: 10px 0;';
+        const totalPurchases = Math.round(purchasesPerMonth * durationMonths);
+        const btcPerPurchase = dcaAmount / currentPrice;
+        const totalSpent = dcaAmount * totalPurchases;
+        const totalBtc = btcPerPurchase * totalPurchases;
 
-      const warningText = feePercentage > 25 ?
-        `WARNING: The fee would consume ${feePercentage.toFixed(2)}% of your future bitcoin value!` :
-        `Fee represents ${feePercentage.toFixed(2)}% of your future bitcoin value`;
+        // Calculate future UTXO spending cost
+        const txVBytes = document.getElementById('txVBytes').innerHTML;
+        const spendCostSats = txVBytes * futureFeeRate * totalPurchases;
+        const spendCostUSD = (spendCostSats / 100000000) * futurePrice;
 
-      document.getElementById('spend_cost').innerHTML = `
+        // Calculate fee as percentage of total investment
+        const totalValueAtFuturePrice = totalBtc * futurePrice;
+        const feePercentage = (spendCostUSD / totalValueAtFuturePrice) * 100;
+
+        // Update results
+        document.getElementById('total_spent').innerHTML = totalSpent.toLocaleString('en-US', { maximumFractionDigits: 2 });
+        document.getElementById('total_btc').innerHTML = totalBtc.toFixed(8);
+        document.getElementById('utxo_count').innerHTML = totalPurchases;
+
+        // Create callout with conditional styling
+        const calloutStyle = feePercentage > 25 ?
+          'background-color: #ffebee; border-left: 5px solid #c62828; padding: 15px; margin: 10px 0;' :
+          'background-color: #e3f2fd; border-left: 5px solid #1976d2; padding: 15px; margin: 10px 0;';
+
+        const warningText = feePercentage > 25 ?
+          `WARNING: The fee would consume ${feePercentage.toFixed(2)}% of your future bitcoin value!` :
+          `Fee represents ${feePercentage.toFixed(2)}% of your future bitcoin value`;
+
+        document.getElementById('spend_cost').innerHTML = `
         <div style="${calloutStyle}">
           <strong>Cost to Spend All UTXOs:</strong><br>
           ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
@@ -319,110 +308,110 @@
           $${totalValueAtFuturePrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}<br>
           ${warningText}
         </div>`;
-    }
-
-    function processForm() {
-      // Validate transaction input attributes
-      var input_script = document.getElementById('input_script').value;
-      var input_m = parseInt(document.getElementById('input_m').value);
-      if (!Number.isInteger(input_m) || input_m < 0) {
-        alert('expecting positive signature count');
-        return;
-      }
-      var input_n = parseInt(document.getElementById('input_n').value);
-      if (!Number.isInteger(input_n) || input_n < 0) {
-        alert('expecting positive pubkey count');
-        return;
       }
 
-      // Calculate number of UTXOs from DCA parameters
-      const frequency = document.getElementById('dca_frequency').value;
-      const durationMonths = parseInt(document.getElementById('dca_duration').value);
-      let purchasesPerMonth;
-      switch (frequency) {
-        case 'daily':
-          purchasesPerMonth = 30;
-          break;
-        case 'weekly':
-          purchasesPerMonth = 52 / 12; // Approximately 4.33 weeks per month
-          break;
-        case 'monthly':
-          purchasesPerMonth = 1;
-          break;
+      function processForm() {
+        // Validate transaction input attributes
+        var input_script = document.getElementById('input_script').value;
+        var input_m = parseInt(document.getElementById('input_m').value);
+        if (!Number.isInteger(input_m) || input_m < 0) {
+          alert('expecting positive signature count');
+          return;
+        }
+        var input_n = parseInt(document.getElementById('input_n').value);
+        if (!Number.isInteger(input_n) || input_n < 0) {
+          alert('expecting positive pubkey count');
+          return;
+        }
+
+        // Calculate number of UTXOs from DCA parameters
+        const frequency = document.getElementById('dca_frequency').value;
+        const durationMonths = parseInt(document.getElementById('dca_duration').value);
+        let purchasesPerMonth;
+        switch (frequency) {
+          case 'daily':
+            purchasesPerMonth = 30;
+            break;
+          case 'weekly':
+            purchasesPerMonth = 52 / 12; // Approximately 4.33 weeks per month
+            break;
+          case 'monthly':
+            purchasesPerMonth = 1;
+            break;
+        }
+        var input_count = Math.round(purchasesPerMonth * durationMonths) || 1; // Use 1 as fallback if calculation fails
+        var output_count = 2;
+
+        // In most cases the input size is predictable. For multisig inputs we need to perform a detailed calculation
+        var inputSize = 0; // in virtual bytes
+        var inputWitnessSize = 0;
+        switch (input_script) {
+          case "P2PKH":
+            inputSize = P2PKH_IN_SIZE;
+            break;
+          case "P2SH-P2WPKH":
+            inputSize = P2SH_P2WPKH_IN_SIZE;
+            inputWitnessSize = 107; // size(signature) + signature + size(pubkey) + pubkey
+            break;
+          case "P2WPKH":
+            inputSize = P2WPKH_IN_SIZE;
+            inputWitnessSize = 107; // size(signature) + signature + size(pubkey) + pubkey
+            break;
+          case "P2TR": // Only consider the cooperative taproot signing path; assume multisig is done via aggregate signatures
+            inputSize = P2TR_IN_SIZE;
+            inputWitnessSize = 65; // getSizeOfVarInt(schnorrSignature) + schnorrSignature;
+            break;
+          case "P2SH":
+            var redeemScriptSize = 1 + // OP_M
+              input_n * (1 + PUBKEY_SIZE) + // OP_PUSH33 <pubkey>
+              1 + // OP_N
+              1; // OP_CHECKMULTISIG
+            var scriptSigSize = 1 + // size(0)
+              input_m * (1 + SIGNATURE_SIZE) + // size(SIGNATURE_SIZE) + signature
+              getSizeOfScriptLengthElement(redeemScriptSize) + redeemScriptSize;
+            inputSize = 32 + 4 + getSizeOfVarInt(scriptSigSize) + scriptSigSize + 4;
+            break;
+          case "P2SH-P2WSH":
+          case "P2WSH":
+            var redeemScriptSize = 1 + // OP_M
+              input_n * (1 + PUBKEY_SIZE) + // OP_PUSH33 <pubkey>
+              1 + // OP_N
+              1; // OP_CHECKMULTISIG
+            inputWitnessSize = 1 + // size(0)
+              input_m * (1 + SIGNATURE_SIZE) + // size(SIGNATURE_SIZE) + signature
+              getSizeOfScriptLengthElement(redeemScriptSize) + redeemScriptSize;
+            inputSize = 36 + // outpoint (spent UTXO ID)
+              inputWitnessSize / 4 + // witness program
+              4;  // nSequence
+            if (input_script == "P2SH-P2WSH") {
+              inputSize += 32 + 3; // P2SH wrapper (redeemscript hash) + overhead?
+            }
+        }
+
+        var txVBytes = getTxOverheadVBytes(input_script, input_count, output_count) + inputSize;
+        txVBytes = Math.ceil(txVBytes);
+
+        var txBytes = getTxOverheadExtraRawBytes(input_script, input_count) + txVBytes + (inputWitnessSize * input_count) * 3 / 4;
+        var txWeight = txVBytes * 4;
+
+        document.getElementById('txVBytes').innerHTML = txVBytes;
+
+        // Calculate DCA results
+        calculateDCAResults();
       }
-      var input_count = Math.round(purchasesPerMonth * durationMonths) || 1; // Use 1 as fallback if calculation fails
-      var output_count = 2;
-
-      // In most cases the input size is predictable. For multisig inputs we need to perform a detailed calculation
-      var inputSize = 0; // in virtual bytes
-      var inputWitnessSize = 0;
-      switch (input_script) {
-        case "P2PKH":
-          inputSize = P2PKH_IN_SIZE;
-          break;
-        case "P2SH-P2WPKH":
-          inputSize = P2SH_P2WPKH_IN_SIZE;
-          inputWitnessSize = 107; // size(signature) + signature + size(pubkey) + pubkey
-          break;
-        case "P2WPKH":
-          inputSize = P2WPKH_IN_SIZE;
-          inputWitnessSize = 107; // size(signature) + signature + size(pubkey) + pubkey
-          break;
-        case "P2TR": // Only consider the cooperative taproot signing path; assume multisig is done via aggregate signatures
-          inputSize = P2TR_IN_SIZE;
-          inputWitnessSize = 65; // getSizeOfVarInt(schnorrSignature) + schnorrSignature;
-          break;
-        case "P2SH":
-          var redeemScriptSize = 1 + // OP_M
-            input_n * (1 + PUBKEY_SIZE) + // OP_PUSH33 <pubkey>
-            1 + // OP_N
-            1; // OP_CHECKMULTISIG
-          var scriptSigSize = 1 + // size(0)
-            input_m * (1 + SIGNATURE_SIZE) + // size(SIGNATURE_SIZE) + signature
-            getSizeOfScriptLengthElement(redeemScriptSize) + redeemScriptSize;
-          inputSize = 32 + 4 + getSizeOfVarInt(scriptSigSize) + scriptSigSize + 4;
-          break;
-        case "P2SH-P2WSH":
-        case "P2WSH":
-          var redeemScriptSize = 1 + // OP_M
-            input_n * (1 + PUBKEY_SIZE) + // OP_PUSH33 <pubkey>
-            1 + // OP_N
-            1; // OP_CHECKMULTISIG
-          inputWitnessSize = 1 + // size(0)
-            input_m * (1 + SIGNATURE_SIZE) + // size(SIGNATURE_SIZE) + signature
-            getSizeOfScriptLengthElement(redeemScriptSize) + redeemScriptSize;
-          inputSize = 36 + // outpoint (spent UTXO ID)
-            inputWitnessSize / 4 + // witness program
-            4;  // nSequence
-          if (input_script == "P2SH-P2WSH") {
-            inputSize += 32 + 3; // P2SH wrapper (redeemscript hash) + overhead?
-          }
-      }
-
-      var txVBytes = getTxOverheadVBytes(input_script, input_count, output_count) + inputSize;
-      txVBytes = Math.ceil(txVBytes);
-
-      var txBytes = getTxOverheadExtraRawBytes(input_script, input_count) + txVBytes + (inputWitnessSize * input_count) * 3 / 4;
-      var txWeight = txVBytes * 4;
-
-      document.getElementById('txVBytes').innerHTML = txVBytes;
-
-      // Calculate DCA results
-      calculateDCAResults();
-    }
-  </script>
-  <script>
-    // Wait for DOM to be fully loaded before running processForm
-    document.addEventListener('DOMContentLoaded', function () {
-      // Ensure all elements exist before calling processForm
-      if (document.getElementById('txVBytes') &&
-        document.getElementById('input_script') &&
-        document.getElementById('input_m') &&
-        document.getElementById('input_n')) {
-        processForm();
-      }
-    });
-  </script>
+    </script>
+    <script>
+      // Wait for DOM to be fully loaded before running processForm
+      document.addEventListener('DOMContentLoaded', function () {
+        // Ensure all elements exist before calling processForm
+        if (document.getElementById('txVBytes') &&
+          document.getElementById('input_script') &&
+          document.getElementById('input_m') &&
+          document.getElementById('input_n')) {
+          processForm();
+        }
+      });
+    </script>
 </body>
 
 </html>
