@@ -75,12 +75,12 @@
               <label for="input_script" class="col-sm-4 col-form-label">Script type</label>
               <div class="col-sm-8">
                 <select id="input_script" class="format form-control" oninput="processForm()">
-                  <option value="P2PKH" selected>P2PKH</option>
+                  <option value="P2PKH">P2PKH</option>
                   <option value="P2SH">P2SH</option>
                   <option value="P2SH-P2WPKH">P2WPKH in P2SH</option>
                   <option value="P2SH-P2WSH">P2WSH in P2SH</option>
                   <option value="P2WPKH">P2WPKH</option>
-                  <option value="P2WSH">P2WSH</option>
+                  <option value="P2WSH" selected>P2WSH</option>
                   <option value="P2TR">P2TR</option>
                 </select>
               </div>
@@ -126,8 +126,8 @@
               <div class="col-sm-8">
                 <select id="dca_frequency" class="format form-control" oninput="processForm()">
                   <option value="daily">Daily</option>
-                  <option value="weekly" selected>Weekly</option>
-                  <option value="monthly">Monthly</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly" selected>Monthly</option>
                 </select>
               </div>
             </div>
