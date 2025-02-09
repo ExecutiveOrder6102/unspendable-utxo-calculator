@@ -185,6 +185,13 @@
       const P2WPKH_IN_SIZE = 67.75;
       const P2TR_IN_SIZE = 57.25;
 
+      // Output size constants
+      const P2PKH_OUT_SIZE = 34; // 8 (value) + 1 (scriptPubKey length) + 25 (scriptPubKey)
+      const P2SH_OUT_SIZE = 32; // 8 (value) + 1 (scriptPubKey length) + 23 (scriptPubKey)
+      const P2WPKH_OUT_SIZE = 31; // 8 (value) + 1 (scriptPubKey length) + 22 (scriptPubKey)
+      const P2WSH_OUT_SIZE = 43; // 8 (value) + 1 (scriptPubKey length) + 34 (scriptPubKey)
+      const P2TR_OUT_SIZE = 43; // 8 (value) + 1 (scriptPubKey length) + 34 (scriptPubKey)
+
       const PUBKEY_SIZE = 33;
       const SIGNATURE_SIZE = 72;
 
@@ -223,12 +230,9 @@
           var witness_vbytes = 0.5;  // segwit marker & flag
         }
 
-        const output_size = getOutputSize(input_script);
-
         return 4 + // nVersion
           getSizeOfVarInt(input_count) + // number of inputs
           getSizeOfVarInt(output_count) + // number of outputs
-          (output_size * output_count) + // size of each output
           4 + // nLockTime
           witness_vbytes;
       }
@@ -238,8 +242,13 @@
           case "P2PKH":
             return P2PKH_OUT_SIZE;
           case "P2SH":
-            return P2SH_OUT_SIZE; // 32 vBytes for P2SH output
-          // ... other cases ...
+            return P2SH_OUT_SIZE;
+          case "P2WPKH":
+            return P2WPKH_OUT_SIZE;
+          case "P2WSH":
+            return P2WSH_OUT_SIZE;
+          case "P2TR":
+            return P2TR_OUT_SIZE;
           default:
             return P2PKH_OUT_SIZE;
         }
@@ -391,7 +400,10 @@
             }
         }
 
-        var txVBytes = getTxOverheadVBytes(input_script, input_count, output_count) + (inputSize * input_count);
+        var txVBytes = getTxOverheadVBytes(input_script, input_count, output_count) +
+          (inputSize * input_count) +
+          getOutputSize(input_script);
+
         txVBytes = Math.ceil(txVBytes);
 
         var txBytes = getTxOverheadExtraRawBytes(input_script, input_count) + txVBytes + (inputWitnessSize * input_count) * 3 / 4;
