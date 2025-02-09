@@ -63,7 +63,34 @@
   <div class="container">
     <div class="hero text-center">
       <h1>Bitcoin DCA Fee Calculator</h1>
-      <p class="lead">See how small frequent bitcoin purchases could become expensive to spend in the future</p>
+      <p class="lead">See how small frequent on-chain bitcoin purchases could become expensive to spend in the future
+      </p>
+    </div>
+
+    <div class="mt-5">
+      <h4>Who is this tool for?</h4>
+      <p>This is designed to help new users understand the implicaitons of buying on-chain. Unfortunately people can be
+        driven by
+        high-time preference behaviour and decide to move/sell all their bitcoin when everybody else is thinking the
+        same thing! DCA (Dollar Cost Averaging) is a strategy that helps you buy bitcoin over time, reducing the impact
+        of price volatility but also it can be your own worst enemy if you don't understand the implications.</p>
+    </div>
+
+    <div class="mt-5">
+      <h4>Assumptions made by this tool</h4>
+      <p>- You're buying BTC on an exchange that immediately sends you the BTC after purchase.
+      </p>
+      <p>- That you are recieving the full amount of BTC that you paid for, and not including any exchange withdrawal
+        fees.
+      </p>
+      <p>- That you are using a "native segwit" wallet that addresses start with bc1p (P2WPKH - Pay to Witness Public
+        Key
+        Hash).
+      </p>
+      <p>- That the price will remain the same during your DCA period, this won't be true but use it as a rough guide.
+      </p>
+      <p>- That you do not perform any UTXO management, and will want to move all of your BTC in one go.
+      </p>
     </div>
 
     <div class="row justify-content-center">
@@ -104,7 +131,7 @@
               </div>
             </div>
             <div class="form-group row mb-3">
-              <label for="future_fee_rate" class="col-sm-4 col-form-label">Expected Future Fee Rate (sats/vB)</label>
+              <label for="future_fee_rate" class="col-sm-4 col-form-label">Anticipated High Fee Rate (sats/vB)</label>
               <div class="col-sm-8">
                 <input type="number" id="future_fee_rate" class="format form-control" value="100" min="0"
                   oninput="processForm()" />
@@ -118,7 +145,7 @@
 
     <div class="results-card mt-4">
       <h4>What this means for you:</h4>
-      <p>Total Investment: $<span id="total_spent"></span></p>
+      <p>Total Purchased: $<span id="total_spent"></span></p>
       <p>Number of UTXOs (separate pieces of bitcoin): <span id="utxo_count"></span></p>
       <span id="spend_cost"></span>
     </div>
@@ -130,6 +157,7 @@
         If the network fees are high and you have many small UTXOs, it might cost more in fees than some of your bitcoin
         is worth!</p>
     </div>
+
   </div>
 
   <script>
@@ -186,14 +214,14 @@
 
       const warningText = spendCostUSD > (totalSpent * 0.05) ?
         `<strong>Warning:</strong> The fees to spend your bitcoin could be very expensive!` :
-        `The fees to spend your bitcoin should be reasonable.`;
+        `The fees to spend your bitcoin could be acceptable within that high fee rate.`;
 
       document.getElementById('spend_cost').innerHTML = `
         <div style="${calloutStyle}">
           ${warningText}<br><br>
           <strong>Estimated cost to spend all your bitcoin:</strong><br>
           ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
-          This would be ${((spendCostUSD / totalSpent) * 100).toFixed(1)}% of your total investment
+          This would be ${((spendCostUSD / totalSpent) * 100).toFixed(1)}% of your total value
         </div>`;
     }
 
@@ -204,8 +232,6 @@
     // Initial load: fetch price and calculate
     document.addEventListener('DOMContentLoaded', () => {
       fetchBitcoinPrice();
-      // Set up periodic price updates (every 60 seconds)
-      setInterval(fetchBitcoinPrice, 60000);
     });
   </script>
 </body>
