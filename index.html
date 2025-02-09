@@ -98,19 +98,16 @@
 
     <div class="mt-5">
       <h4>Assumptions made by this tool</h4>
-      <p>- You're buying BTC on an exchange that immediately sends you the BTC after purchase.
-      </p>
-      <p>- That you are recieving the full amount of BTC that you paid for, and not including any exchange withdrawal
-        fees.
-      </p>
-      <p>- That you are using a "native segwit" wallet that addresses start with bc1p (P2WPKH - Pay to Witness Public
-        Key
-        Hash).
-      </p>
-      <p>- That the price will remain the same during your DCA period, this won't be true but use it as a rough guide.
-      </p>
-      <p>- That you do not perform any UTXO management, and will want to move all of your BTC in one go.
-      </p>
+      <ul>
+        <li>You're buying BTC on an exchange that immediately sends you the BTC after purchase.</li>
+        <li>That you are receiving the full amount of BTC that you paid for, and not including any exchange withdrawal
+          fees.</li>
+        <li>That you are using a "native segwit" wallet that addresses start with bc1p (P2WPKH - Pay to Witness Public
+          Key Hash).</li>
+        <li>That the price will remain the same during your DCA period, this won't be true but use it as a rough guide.
+        </li>
+        <li>That you do not perform any UTXO management, and will want to move all of your BTC in one go.</li>
+      </ul>
     </div>
 
     <div class="row justify-content-center">
@@ -155,7 +152,7 @@
               <div class="col-sm-8">
                 <input type="number" id="future_fee_rate" class="format form-control" value="100" min="0"
                   oninput="processForm()" />
-                <small class="text-muted">During high network activity, fees can spike to 100+ sats/vB</small>
+                <small class="text-muted">During high network activity, fees can spike to 250+ sats/vB</small>
               </div>
             </div>
           </form>
@@ -174,9 +171,40 @@
       <h4>What are UTXOs?</h4>
       <p>Every time you buy bitcoin, it creates a separate piece of bitcoin (called a UTXO) in your wallet.
         When you want to spend your bitcoin later, you need to pay a network fee for each UTXO you use.
-        If the network fees are high and you have many small UTXOs, it might cost more in fees than some of your bitcoin
-        is worth!</p>
+        If the network fees are high and you have many small UTXOs, it might cost more in fees than your bitcoin is
+        worth!</p>
     </div>
+
+    <div class="mt-5">
+      <h4>What do I do with this information?</h4>
+      <p>Explore different options available to you, for example if you're on a smaller budget: </p>
+      <ul>
+        <li>Buy more bitcoin, but less frequently</li>
+        <li>Use a custodial exchange, wait till you have a larger amount (in satoshis) before withdrawing</li>
+        <li>Use an exchange that interoperates with the lightning network for moving smaller amounts</li>
+      </ul>
+      <p>You should read up on the <a href="https://www.discreetlog.com/utxos/">Bitcoin Transaction Fees and UTXO
+          Management - Matt Odell</a> understand further on what UTXO sizes are "good" as a baseline, and how you can
+        "consolidate" them to save on fees in the future
+
+      <p>
+        You should also investigate different kinds of wallets, and
+        especially
+        <b>if you want to consider a multi-sig wallet in the future then UTXO sizes are an incredibly important
+          consideration
+          <a href="https://unchained.com/blog/bitcoin-address-types-compared">Bitcoin Address Types Compared - Unchained
+            Capital</a></b>
+      </p>
+    </div>
+    <div class="mt-5">
+      <h4>Acknowledgements</h4>
+      <p>This code is 100% open source, originally forked from Jameson Lopp's <a
+          href="https://github.com/jlopp/unspendable-utxo-calculator">unspendable-utxo-calculator</a> please please
+        <b>please</b> check that out if you're going to be using other wallet types, or have one. I massively
+        oversimplified this calculator for people with high enough time preference to think in dollar values
+      </p>
+    </div>
+
 
   </div>
 
@@ -184,8 +212,28 @@
     const VBYTES_PER_UTXO = 67.75; // P2WPKH input size
     const OVERHEAD_VBYTES = 43; // Basic overhead + 1 output
 
+    // First ensure required elements exist
+    function ensureElements() {
+      // Check and create results div if needed
+      if (!document.getElementById('results')) {
+        const resultsDiv = document.createElement('div');
+        resultsDiv.id = 'results';
+        document.querySelector('.container').appendChild(resultsDiv);
+      }
+
+      // Check and create warning div if needed
+      if (!document.getElementById('warning')) {
+        const warningDiv = document.createElement('div');
+        warningDiv.id = 'warning';
+        document.querySelector('.container').appendChild(warningDiv);
+      }
+    }
+
     async function fetchBitcoinPrice() {
       try {
+        // Ensure elements exist before fetching price
+        ensureElements();
+
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
         const data = await response.json();
         const price = data.bitcoin.usd;
@@ -228,13 +276,20 @@
       document.getElementById('total_spent').innerHTML = totalSpent.toLocaleString('en-US', { maximumFractionDigits: 2 });
       document.getElementById('utxo_count').innerHTML = totalPurchases;
 
-      const calloutStyle = spendCostUSD > (totalSpent * 0.05) ?
-        'background-color: #ffebee; border-left: 5px solid #c62828; padding: 15px; margin: 10px 0;' :
-        'background-color: #e3f2fd; border-left: 5px solid #1976d2; padding: 15px; margin: 10px 0;';
+      let calloutStyle;
+      let warningText;
+      const costPercentage = (spendCostUSD / totalSpent) * 100;
 
-      const warningText = spendCostUSD > (totalSpent * 0.05) ?
-        `<strong>Warning:</strong> The fees to spend your bitcoin could be very expensive!` :
-        `The fees to spend your bitcoin could be acceptable within that high fee rate.`;
+      if (costPercentage > 20) {
+        calloutStyle = 'background-color: #ffebee; border-left: 5px solid #c62828; padding: 15px; margin: 10px 0;';
+        warningText = '<strong>Warning:</strong> The fees to spend your bitcoin would be extremely expensive!';
+      } else if (costPercentage > 5) {
+        calloutStyle = 'background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin: 10px 0;';
+        warningText = '<strong>Caution:</strong> The fees to spend your bitcoin could be expensive.';
+      } else {
+        calloutStyle = 'background-color: #e3f2fd; border-left: 5px solid #1976d2; padding: 15px; margin: 10px 0;';
+        warningText = 'The fees to spend your bitcoin could be at an acceptable level.';
+      }
 
       document.getElementById('spend_cost').innerHTML = `
         <div style="${calloutStyle}">
@@ -243,26 +298,6 @@
           ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
           This would be ${((spendCostUSD / totalSpent) * 100).toFixed(1)}% of your total value
         </div>`;
-
-      // Update warning message
-      const warningDiv = document.getElementById('warning');
-      warningDiv.innerHTML = '';
-
-      // Calculate percentage of total cost relative to total purchased amount
-      const totalPurchased = parseFloat(document.getElementById('dca_amount').value);
-      const costPercentage = (spendCostUSD / totalPurchased) * 100;
-
-      if (costPercentage > 25) {
-        warningDiv.innerHTML = `
-          <div class="danger-callout">
-            <strong>High Cost Warning:</strong> The estimated cost is more than 25% of your total purchased amount!
-          </div>`;
-      } else if (costPercentage > 10) {
-        warningDiv.innerHTML = `
-          <div class="warning-callout">
-            <strong>Warning:</strong> The estimated cost is more than 10% of your total purchased amount!
-          </div>`;
-      }
     }
 
     function processForm() {
