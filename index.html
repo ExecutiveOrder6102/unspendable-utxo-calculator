@@ -73,7 +73,7 @@
           <form role="form" action="javascript:void(0);">
             <div class="form-group row">
               <label for="input_script" class="col-sm-4 col-form-label">Script type</label>
-              <div class="col-sm-3">
+              <div class="col-sm-8">
                 <select id="input_script" class="format form-control" oninput="processForm()">
                   <option value="P2PKH" selected>P2PKH</option>
                   <option value="P2SH">P2SH</option>
@@ -87,15 +87,15 @@
             </div>
             <div class="form-group row">
               <label for="input_m" class="col-sm-4 col-form-label">Signatures required</label>
-              <div class="col-sm-2">
-                <input type="text" id="input_m" class="format form-control" value="1" maxlength="5" size="5"
+              <div class="col-sm-8">
+                <input type="text" id="input_m" class="format form-control" value="1" maxlength="5"
                   oninput="processForm()" />
               </div>
             </div>
             <div class="form-group row">
               <label for="input_n" class="col-sm-4 col-form-label">How many total public keys?</label>
-              <div class="col-sm-2">
-                <input type="text" id="input_n" class="format form-control" value="1" maxlength="5" size="5"
+              <div class="col-sm-8">
+                <input type="text" id="input_n" class="format form-control" value="1" maxlength="5"
                   oninput="processForm()" />
               </div>
             </div>
@@ -109,21 +109,21 @@
           <form role="form" action="javascript:void(0);">
             <div class="form-group row">
               <label for="btc_price" class="col-sm-4 col-form-label">Current Bitcoin Price ($)</label>
-              <div class="col-sm-2">
+              <div class="col-sm-8">
                 <input type="number" id="btc_price" class="format form-control" value="40000" min="0" step="1000"
                   oninput="processForm()" />
               </div>
             </div>
             <div class="form-group row">
               <label for="dca_amount" class="col-sm-4 col-form-label">DCA Amount ($)</label>
-              <div class="col-sm-2">
+              <div class="col-sm-8">
                 <input type="number" id="dca_amount" class="format form-control" value="100" min="0"
                   oninput="processForm()" />
               </div>
             </div>
             <div class="form-group row">
               <label for="dca_frequency" class="col-sm-4 col-form-label">DCA Frequency</label>
-              <div class="col-sm-3">
+              <div class="col-sm-8">
                 <select id="dca_frequency" class="format form-control" oninput="processForm()">
                   <option value="daily">Daily</option>
                   <option value="weekly" selected>Weekly</option>
@@ -133,21 +133,21 @@
             </div>
             <div class="form-group row">
               <label for="dca_duration" class="col-sm-4 col-form-label">DCA Duration (months)</label>
-              <div class="col-sm-2">
+              <div class="col-sm-8">
                 <input type="number" id="dca_duration" class="format form-control" value="12" min="1"
                   oninput="processForm()" />
               </div>
             </div>
             <div class="form-group row">
               <label for="future_price" class="col-sm-4 col-form-label">Future Bitcoin Price ($)</label>
-              <div class="col-sm-2">
+              <div class="col-sm-8">
                 <input type="number" id="future_price" class="format form-control" value="100000" min="0" step="1000"
                   oninput="processForm()" />
               </div>
             </div>
             <div class="form-group row">
               <label for="future_fee_rate" class="col-sm-4 col-form-label">Future Fee Rate (sats/vB)</label>
-              <div class="col-sm-2">
+              <div class="col-sm-8">
                 <input type="number" id="future_fee_rate" class="format form-control" value="100" min="0"
                   oninput="processForm()" />
               </div>
@@ -164,7 +164,23 @@
       <p>Number of UTXOs: <span id="utxo_count"></span></p>
       <p>Transaction Size: <span id="txVBytes"></span> vBytes</p>
       <span id="spend_cost"></span>
-      <div id="chart" class="plotly-graph-div" style="height:100%; width:100%;"></div>
+    </div>
+
+    <div class="mt-5">
+      <h2>This tool is 100% open source code</h2>
+      <p>This tool is a fork of the original <a href="https://jlopp.github.io/unspendable-utxo-calculator">Economically
+          Unspendable Bitcoin UTXO Calculator</a> by jlopp. <a
+          href="https://github.com/jlopp/unspendable-utxo-calculator">https://github.com/jlopp/unspendable-utxo-calculator</a>
+      </p>
+
+      <h2>Libraries</h2>
+      <p>Twitter Bootstrap: <a href="http://getbootstrap.com/">http://getbootstrap.com/</a></p>
+    </div>
+
+    <div class="mt-5 text-center text-muted">
+      <p>Transaction size calculations based on <a href="https://bitcoin.stackexchange.com/a/98690">Murch's
+          StackExchange answer</a>.</p>
+      <p>Calculator by <a href="https://twitter.com/moneyball">Moneyball</a>.</p>
     </div>
   </div>
 
@@ -296,15 +312,13 @@
         `Fee represents ${feePercentage.toFixed(2)}% of your future bitcoin value`;
 
       document.getElementById('spend_cost').innerHTML = `
-    <div style="${calloutStyle}">
-      <strong>Cost to Spend All UTXOs:</strong><br>
-      ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
-      <strong>Total Future Bitcoin Value:</strong><br>
-      $${totalValueAtFuturePrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}<br>
-      ${warningText}
-    </div>`;
-
-      document.getElementById('dca_results').style.display = 'block';
+        <div style="${calloutStyle}">
+          <strong>Cost to Spend All UTXOs:</strong><br>
+          ${spendCostSats.toLocaleString('en-US')} sats ($${spendCostUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })})<br>
+          <strong>Total Future Bitcoin Value:</strong><br>
+          $${totalValueAtFuturePrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}<br>
+          ${warningText}
+        </div>`;
     }
 
     function processForm() {
@@ -395,101 +409,6 @@
 
       // Calculate DCA results
       calculateDCAResults();
-
-      // generate a plot with X axis of fee rate an Y axis of cost to spend UTXO
-      // fee rates in units of 10 from 1 to 1000 satoshis per virtual byte
-      let xValues = [1];
-      let yValues = [txVBytes];
-      for (let i = 1; i <= 1000; i += 1) {
-        xValues.push(i);
-        let cost = i * txVBytes;
-        yValues.push(cost);
-      }
-
-      window.PLOTLYENV = window.PLOTLYENV || {};
-      var layout = {
-        autosize: true,
-        paper_bgcolor: 'transparent',
-        plot_bgcolor: 'transparent',
-        hovermode: 'closest',
-        showlegend: false,
-
-        legend: {
-          orientation: "h",
-          x: 0.5,
-          xanchor: "center",
-        },
-
-        // X-axis styling
-        xaxis: {
-
-          title: 'Fee Rate (satoshis per virtual byte)',
-          range: [0, 1000],
-
-          showgrid: false,
-          automargin: true,
-          autorange: true,
-
-          // vertical crosshair
-          showspikes: true,
-          spikemode: 'across',
-          spikethickness: 0.5,
-          spikecolor: '#333',
-          spikedash: 'line',
-        },
-
-        // Y-axis styling
-        yaxis: {
-
-          title: 'Spend Fee (satoshis)',
-          //type:        'linear',
-          //hoverformat: '.4r',
-          titlefont: {
-            family: 'Open Sans, Arial',
-            weight: 500,
-            size: 12,
-            color: '#666'
-          },
-
-          showgrid: false,
-          automargin: true,
-          zeroline: false,
-
-          // horizontal crosshair
-          showspikes: true,
-          spikemode: 'across',
-          spikethickness: 0.5,
-          spikecolor: '#333',
-          spikedash: 'line',
-        }
-      }
-
-      var cost = [{
-        x: xValues,
-        y: yValues,
-        marker: {
-          opacity: 0
-        },
-        line: {
-          color: 'rgb(31, 119, 180)',
-          width: 1,
-          dash: ''
-        },
-        type: 'line',
-        opacity: 1,
-        showlegend: true,
-
-        name: 'UTXO Spend Cost',
-        hoverinfo: 'x,y',
-        yaxis: 'y',
-
-        hoverlabel: {
-          bordercolor: '#FFF',
-          font: { family: 'Open Sans, Arial', weight: 500, size: 10, },
-        },
-      }];
-
-      Plotly.newPlot('chart', cost, layout, { responsive: true });
     }
   </script>
   <script>
